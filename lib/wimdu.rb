@@ -8,7 +8,7 @@ unless DB.table_exists?('properties')
     primary_key :id
     String  :uuid
     String  :title
-    Integer :type
+    String  :type
     String  :address
     Float   :rate
     Integer :max_guests
@@ -25,9 +25,12 @@ class Property < Sequel::Model
     super
 
     errors.add(:title, 'cannot be empty')     if !title.nil? && title.length == 0
+    errors.adD(:type,  'must be holiday home, apartment or private room') if !type.nil? && !type.match(/\A(holiday home|apartment|private room)\Z/)
     errors.add(:address, 'cannot be empty')   if !address.nil? && address.length == 0
     errors.add(:rate, 'must be number')       if !rate.nil? && !rate.to_s.match(/\A\d+\.\d*\Z/)
     errors.add(:max_guests, 'must be number') if !max_guests.nil? && !max_guests.to_s.match(/\A\d+\Z/)
+    errors.add(:email, 'cannot be empty')     if !email.nil? && email.length == 0
+    errors.add(:phone, 'cannot be empty')     if !phone.nil? && phone.length == 0
   end
 
   def before_create
@@ -52,7 +55,6 @@ class CLI < Thor
 
   desc "continue ID", "Continues filling property information"
   def continue(uuid)
-    puts Property.all.inspect
     @property = Property.first(uuid: uuid)
     if @property.nil?
       say("Cannot find property with #{uuid}")
@@ -75,12 +77,13 @@ class CLI < Thor
   private
   def fill_data(property)
     attributes = {
-      title: 'Title:',
-      address: 'Address:',
-      rate: 'Nightly rate in EUR:',
-      max_guests: 'Max guests:',
-      email: 'Email:',
-      phone: 'Phone number:',
+      title: ['Title:'],
+      type: ['Property Type:', limited_to: ['holiday home', 'apartment', 'private room']],
+      address: ['Address:'],
+      rate: ['Nightly rate in EUR:'],
+      max_guests: ['Max guests:'],
+      email: ['Email:'],
+      phone: ['Phone number:'],
     }
 
     attributes.each {|a, q| ask_and_save(property, a, q)}
@@ -89,7 +92,9 @@ class CLI < Thor
     property.active = true
     property.save
 
-    say("Great job! Listing #{property.uuid} is complete!")
+    if attributes.select{|a| property.send(a).nil? }.empty?
+      say("Great job! Listing #{property.uuid} is complete!")
+    end
   end
 
   def ask_and_save(property, attribute, question)
@@ -99,7 +104,7 @@ class CLI < Thor
           say("Error: #{attribute.capitalize} #{property.errors[attribute].join(', ')}")
         end
 
-        property.send("#{attribute}=", ask(question))
+        property.send("#{attribute}=", ask(*question))
       end while !property.valid?
       property.save
     end
