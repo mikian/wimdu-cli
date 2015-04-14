@@ -1,4 +1,5 @@
 require 'sequel'
+require 'securerandom'
 
 module Wimdu
   class DB
@@ -13,6 +14,12 @@ module Wimdu
 
     def properties(inactive = false)
       @db[:properties].where()
+    end
+
+    def property(id = nil)
+      if id.nil?
+        Property.new
+      end
     end
 
     private
@@ -31,6 +38,19 @@ module Wimdu
           Boolean :active
         end
       end
+    end
+
+  end
+
+  class Property
+    attr_reader :id, :uuid
+    attr_accessor :title, :type, :address, :rate, :max_guests, :email, :phone, :active
+
+    def initialize(attributes = {})
+      attributes.each {|key, value| self.send("#{key}=", value) }
+
+      @uuid   ||= SecureRandom.hex(4).upcase
+      @active ||= false
     end
 
   end

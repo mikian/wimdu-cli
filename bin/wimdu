@@ -3,11 +3,7 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'bundler'
-begin
-  Bundler.require(:default)
-rescue LoadError
-  exec "bundle", "exec", "alula", *ARGV
-end
+Bundler.require(:default)
 
-require 'wimdu/cli'
-Wimdu::CLI.start
+require 'wimdu'
+CLI.start
