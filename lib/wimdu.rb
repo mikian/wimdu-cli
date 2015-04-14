@@ -1,4 +1,5 @@
 require 'sequel'
+require 'thor'
 
 # Initialize DB
 DB = Sequel.sqlite('./.wimdu.db')
@@ -51,7 +52,12 @@ class CLI < Thor
 
   desc "continue ID", "Continues filling property information"
   def continue(uuid)
+    puts Property.all.inspect
     @property = Property.first(uuid: uuid)
+    if @property.nil?
+      say("Cannot find property with #{uuid}")
+      exit(1)
+    end
     say("Continuing with #{@property.uuid}")
 
     fill_data(@property)
