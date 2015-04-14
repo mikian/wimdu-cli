@@ -1,4 +1,10 @@
 source 'https://rubygems.org'
 
-gem "aruba"
-gem "rspec"
+gem 'thor'
+gem 'sequel'
+gem 'sqlite3'
+
+gem 'pry'
+
+gem 'aruba'
+gem 'rspec'
