@@ -45,6 +45,16 @@ end
 class CLI < Thor
   include Thor::Actions
 
+  def initialize(*args)
+    # Override interrupt detection
+    trap 'SIGINT' do
+      puts '^C'
+      exit 0
+    end
+
+    super
+  end
+
   desc "new", "Creates a new property"
   def new
     @property = Property.create(active: false)
